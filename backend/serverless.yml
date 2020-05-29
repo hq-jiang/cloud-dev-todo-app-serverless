@@ -14,7 +14,7 @@ provider:
   region: ${opt:region, 'eu-central-1'}
   environment:
     TODOS_TABLE: Todo-${self:provider.stage}
-    INDEX_NAME: TodoIdIndex
+    INDEX_NAME: UserIdIndex
 
 custom: 
   serverless-offline:
@@ -34,12 +34,12 @@ functions:
   #   handler: src/lambda/auth/auth0Authorizer.handler
 
   # TODO: Configure this function
-  # GetTodos:
-  #   handler: src/lambda/http/getTodos.handler
-  #   events:
-  #     - http:
-  #         method: get
-  #         path: todos
+  GetTodos:
+    handler: src/lambda/http/getTodos.handler
+    events:
+      - http:
+          method: get
+          path: todos
 
   # # TODO: Configure this function
   CreateTodo:
@@ -84,6 +84,8 @@ resources:
             AttributeType: S
           - AttributeName: createdAt
             AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
         KeySchema:
           - AttributeName: todoId
             KeyType: HASH
@@ -91,13 +93,11 @@ resources:
             KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.TODOS_TABLE}
-        LocalSecondaryIndexes:
+        GlobalSecondaryIndexes:
           - IndexName: ${self:provider.environment.INDEX_NAME}
             KeySchema:
-              - AttributeName: todoId
+              - AttributeName: userId
                 KeyType: HASH
-              - AttributeName: createdAt
-                KeyType: RANGE
             Projection:
               ProjectionType: ALL # What attributes will be copied to an index
     
