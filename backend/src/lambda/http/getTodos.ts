@@ -7,12 +7,13 @@ const docClient = createDocumentClient()
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   // TODO: Get all TODO items for a current user
+  const userId = event.requestContext.authorizer.principalId
   const params = {
     TableName: process.env.TODOS_TABLE,
     IndexName: process.env.INDEX_NAME,
     KeyConditionExpression: 'userId = :loggedInUser',
     ExpressionAttributeValues: {
-      ':loggedInUser': '1'
+      ':loggedInUser': userId
     }
   }
   const todos = await docClient.query(params).promise()
