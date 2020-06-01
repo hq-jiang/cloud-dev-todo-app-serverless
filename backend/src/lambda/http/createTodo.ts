@@ -4,9 +4,11 @@ import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } f
 import { CreateTodoRequest } from '../../requests/CreateTodoRequest'
 import { v4 } from 'uuid';
 import { getUserId } from '../../lambda/utils';
+import { createLogger } from '../../utils/logger'
 
 const AWS = require('aws-sdk');
 
+const logger = createLogger('Lambda-createTodos')
 const docClient = createDocumentClient()
 const TABLENAME : string = process.env.TODOS_TABLE;
 
@@ -21,12 +23,14 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     createdAt: new Date().toISOString(),
     done: false,
   }
+  logger.info('New item created', item)
 
   const params = {
     TableName : TABLENAME,
     Item: item
   }
   
+  logger.info('Uploading new item to database')
   await docClient.put(params).promise()
 
   return {
@@ -43,7 +47,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 
 function createDocumentClient() {
   if (process.env.IS_OFFLINE) {
-    console.log('Create a local DynamoDB instance')
+    logger.info('Create a local DynamoDB instance')
     return new AWS.DynamoDB.DocumentClient({
       region: 'localhost',
       endpoint: 'http://localhost:8000'

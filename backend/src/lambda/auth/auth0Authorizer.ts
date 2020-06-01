@@ -2,6 +2,9 @@ import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda'
 import 'source-map-support/register'
 import { verify } from 'jsonwebtoken'
 import { JwtPayload } from '../../auth/JwtPayload'
+import { createLogger } from '../../utils/logger'
+
+const logger = createLogger('Lambda-auth0Authorizer')
 
 const cert = `-----BEGIN CERTIFICATE-----
 MIIDDTCCAfWgAwIBAgIJQp+sKnCVi3p9MA0GCSqGSIb3DQEBCwUAMCQxIjAgBgNV
@@ -37,7 +40,7 @@ export const handler = async (event: CustomAuthorizerEvent): Promise<CustomAutho
       { algorithms: ['RS256'] } // We need to specify that we use the RS256 algorithm
     ) as JwtPayload
 
-    console.log('User was authorized', decodedToken);
+    logger.info('User was authorized', decodedToken);
 
     return {
       principalId: decodedToken.sub,
@@ -53,7 +56,7 @@ export const handler = async (event: CustomAuthorizerEvent): Promise<CustomAutho
       }
     }
   } catch(error) {
-    console.log('User was not authorized', error.message)
+    logger.info('User was not authorized', error.message)
 
     return {
       principalId: 'user',
