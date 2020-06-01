@@ -1,19 +1,20 @@
 import 'source-map-support/register'
 
 import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
+import { getUserId } from '../../lambda/utils';
+
 const AWS = require('aws-sdk')
 
 const docClient = createDocumentClient()
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   // TODO: Get all TODO items for a current user
-  const userId = event.requestContext.authorizer.principalId
   const params = {
     TableName: process.env.TODOS_TABLE,
     IndexName: process.env.INDEX_NAME,
     KeyConditionExpression: 'userId = :loggedInUser',
     ExpressionAttributeValues: {
-      ':loggedInUser': userId
+      ':loggedInUser': getUserId(event),
     }
   }
   const todos = await docClient.query(params).promise()
