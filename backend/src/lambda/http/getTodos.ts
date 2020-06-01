@@ -22,6 +22,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     }
   }
   const todos = await docClient.query(params).promise()
+  logger.info('Get all todos', todos)
   
   return {
     statusCode: 200,
