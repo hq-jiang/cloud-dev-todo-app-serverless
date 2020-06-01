@@ -6,6 +6,7 @@ plugins:
   - serverless-iam-roles-per-function
   - serverless-offline
   - serverless-dynamodb-local
+  - serverless-s3-local
 
 provider:
   name: aws
@@ -15,6 +16,24 @@ provider:
   environment:
     TODOS_TABLE: Todo-${self:provider.stage}
     INDEX_NAME: UserIdIndex
+    ATTACHMENT_S3_BUCKET: todo-aeon-${self:provider.stage}
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:Query
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: 
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.INDEX_NAME}
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+        - s3:GetObject
+      Resource: arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*
 
 custom: 
   serverless-offline:
@@ -28,13 +47,14 @@ custom:
     stages:
       - dev
 
-iamRoleStatements:
-  - Effect: Allow
-    Action:
-      - dynamodb:Scan
-      - dynamodb:PutItem
-      - dynamodb:GetItem
-    Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+  s3:
+    # Uncomment the following line only if you want to specify host address of S3 service. 
+    # adress: 0.0.0.0 
+    # Uncomment the following line only if you want to specify S3 server address. 
+    # Ordinary, this value is localhost. But you can modify this value to use other S3 server. 
+    # host: 0.0.0.0 
+    port: 8001
+    directory: /tmp
 
 functions:
   Auth:
@@ -57,6 +77,7 @@ functions:
       - http:
           method: post
           path: todos
+          cors: true
           authorizer: Auth
 
   # TODO: Configure this function
@@ -66,6 +87,7 @@ functions:
       - http:
           method: patch
           path: todos/{todoId}
+          cors: true
           authorizer: Auth
 
   # TODO: Configure this function
@@ -75,15 +97,19 @@ functions:
       - http:
           method: delete
           path: todos/{todoId}
+          cors: true
           authorizer: Auth
 
   # # TODO: Configure this function
-  # GenerateUploadUrl:
-  #   handler: src/lambda/http/generateUploadUrl.handler
-  #   events:
-  #     - http:
-  #         method: post
-  #         path: todos/{todoId}/attachment
+  GenerateUploadUrl:
+    handler: src/lambda/http/generateUploadUrl.handler
+    events:
+      - http:
+          method: post
+          cors: true
+          path: todos/{todoId}/attachment
+          authorizer: Auth
+
 
 resources:
   Resources:
@@ -112,4 +138,37 @@ resources:
                 KeyType: HASH
             Projection:
               ProjectionType: ALL # What attributes will be copied to an index
-    
+    AttachmentsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.ATTACHMENT_S3_BUCKET}
+        # Set the CORS policy
+        CorsConfiguration:
+          CorsRules:
+            -
+              AllowedOrigins:
+                - '*'
+              AllowedHeaders:
+                - '*'
+              AllowedMethods:
+                - GET
+                - PUT
+                - POST
+                - DELETE
+                - HEAD
+              MaxAge: 3000
+
+    BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        PolicyDocument:
+          Id: MyPolicy
+          Version: "2012-10-17"
+          Statement:
+            - Sid: PublicReadForGetBucketObjects
+              Effect: Allow
+              Principal: '*'
+              Action: 
+                - "s3:GetObject"
+              Resource: 'arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*'
+        Bucket: !Ref AttachmentsBucket
