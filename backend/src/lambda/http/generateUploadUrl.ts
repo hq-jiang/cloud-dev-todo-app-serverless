@@ -38,9 +38,8 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 
 function createS3() {
   if (process.env.IS_OFFLINE) {
-    logger.info('Create a local DynamoDB instance')
+    logger.info('Create a local S3 instance')
     return new AWS.S3({
-      signatureVersion: 'v4',
       s3ForcePathStyle: true,
       accessKeyId: 'S3RVER', // This specific key is required when working offline
       secretAccessKey: 'S3RVER',
