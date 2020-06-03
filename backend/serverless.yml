@@ -7,6 +7,7 @@ plugins:
   - serverless-offline
   - serverless-dynamodb-local
   - serverless-s3-local
+  - serverless-reqvalidator-plugin
 
 provider:
   name: aws
@@ -35,7 +36,15 @@ provider:
   #       - s3:GetObject
   #     Resource: arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*
 
-custom: 
+custom:
+  models:
+    - name: CreateTodoRequest
+      contentType: application/json
+      schema: ${file(src/models/create-todo-request.json)}
+    - name: UpdateTodoRequest
+      contentType: application/json
+      schema: ${file(src/models/update-todo-request.json)}
+
   serverless-offline:
     httpPort: 3003
 
@@ -85,6 +94,12 @@ functions:
           path: todos
           cors: true
           authorizer: Auth
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: Create a new todo
+            description: Create a new todo
+            requestModels:
+              'application/json': CreateTodoRequest
     iamRoleStatementsName: createTodo-role
     iamRoleStatements:
       - Effect: "Allow"        
@@ -101,6 +116,12 @@ functions:
           path: todos/{todoId}
           cors: true
           authorizer: Auth
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: Update a todo
+            description: Update a todo
+            requestModels:
+              'application/json': UpdateTodoRequest
     iamRoleStatementsName: updateTodo-role
     iamRoleStatements:
       - Effect: "Allow"        
@@ -205,3 +226,12 @@ resources:
                 - "s3:GetObject"
               Resource: 'arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*'
         Bucket: !Ref AttachmentsBucket
+
+    RequestBodyValidator:
+      Type: AWS::ApiGateway::RequestValidator
+      Properties:
+        Name: 'request-body-validator'
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ValidateRequestBody: true
+        ValidateRequestParameters: false
