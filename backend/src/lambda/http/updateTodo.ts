@@ -7,6 +7,10 @@ import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest'
 import { createLogger } from '../../utils/logger'
 
 const AWS = require('aws-sdk')
+
+const AWSXRay = require('aws-xray-sdk')
+const AWSX = AWSXRay.captureAWS(AWS)
+
 const logger = createLogger('Lambda-updateTodos')
 
 const documentClient = createDocumentClient()
@@ -64,6 +68,6 @@ function createDocumentClient() {
       endpoint: 'http://localhost:8000'
     })
   } else {
-    return new AWS.DynamoDB.DocumentClient()
+    return new AWSX.DynamoDB.DocumentClient()
   }
 }

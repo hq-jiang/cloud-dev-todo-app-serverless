@@ -3,10 +3,12 @@ import 'source-map-support/register'
 import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
 import { CreateTodoRequest } from '../../requests/CreateTodoRequest'
 import { v4 } from 'uuid';
-import { getUserId } from '../../lambda/utils';
+import { getUserId } from '../../lambda/utils'
 import { createLogger } from '../../utils/logger'
 
-const AWS = require('aws-sdk');
+const AWS = require('aws-sdk')
+const AWSXRay = require('aws-xray-sdk')
+const AWSX = AWSXRay.captureAWS(AWS)
 
 const logger = createLogger('Lambda-createTodos')
 const docClient = createDocumentClient()
@@ -53,6 +55,6 @@ function createDocumentClient() {
       endpoint: 'http://localhost:8000'
     })
   } else {
-    return new AWS.DynamoDB.DocumentClient()
+    return new AWSX.DynamoDB.DocumentClient()
   }
 }

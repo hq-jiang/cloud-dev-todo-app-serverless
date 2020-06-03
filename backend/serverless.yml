@@ -19,6 +19,10 @@ provider:
     INDEX_NAME: UserIdIndex
     ATTACHMENT_S3_BUCKET: todo-aeon-${self:provider.stage}
 
+  tracing:
+    lambda: true
+    apiGateway: true
+
   # iamRoleStatements:
   #   - Effect: Allow
   #     Action:
@@ -84,6 +88,11 @@ functions:
         Action:
           - dynamodb:Query        
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.INDEX_NAME}
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+        Resource:
+          - "*"
 
   # TODO: Configure this function
   CreateTodo:
@@ -106,6 +115,12 @@ functions:
         Action:
           - dynamodb:PutItem        
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+          # - xray:PutTelemetryRecords
+        Resource:
+          - "*"
 
   # TODO: Configure this function
   UpdateTodo:
@@ -129,6 +144,11 @@ functions:
           - dynamodb:UpdateItem
           - dynamodb:Query     
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+        Resource:
+          - "*"
 
   # TODO: Configure this function
   DeleteTodo:
@@ -146,6 +166,11 @@ functions:
           - dynamodb:DeleteItem
           - dynamodb:Query     
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+        Resource:
+          - "*"
 
   # # TODO: Configure this function
   GenerateUploadUrl:
@@ -163,6 +188,11 @@ functions:
           - s3:PutObject
           - s3:GetObject
         Resource: arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+        Resource:
+          - "*"
 
 
 resources:

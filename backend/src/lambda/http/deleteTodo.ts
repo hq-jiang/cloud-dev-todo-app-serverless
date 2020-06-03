@@ -6,6 +6,9 @@ import { createLogger } from '../../utils/logger'
 const logger = createLogger('Lambda-deleteTodos')
 const AWS = require('aws-sdk')
 
+const AWSXRay = require('aws-xray-sdk')
+const AWSX = AWSXRay.captureAWS(AWS)
+
 const documentClient = createDocumentClient()
 
 const todosTable = process.env.TODOS_TABLE
@@ -52,6 +55,6 @@ function createDocumentClient() {
       endpoint: 'http://localhost:8000'
     })
   } else {
-    return new AWS.DynamoDB.DocumentClient()
+    return new AWSX.DynamoDB.DocumentClient()
   }
 }

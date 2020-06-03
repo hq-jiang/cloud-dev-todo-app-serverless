@@ -7,6 +7,9 @@ import { createLogger } from '../../utils/logger'
 
 const AWS = require('aws-sdk')
 
+const AWSXRay = require('aws-xray-sdk')
+const AWSX = AWSXRay.captureAWS(AWS)
+
 const logger = createLogger('Lambda-generateUploadUrl')
 
 const s3 = createS3()
@@ -46,7 +49,7 @@ function createS3() {
       endpoint: new AWS.Endpoint('http://localhost:8001'),
     })
   } else {
-    return new AWS.S3({
+    return new AWSX.S3({
       signatureVersion: 'v4'
     })
   }
