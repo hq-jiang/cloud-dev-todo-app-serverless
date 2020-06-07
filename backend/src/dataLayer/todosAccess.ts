@@ -1,5 +1,5 @@
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
-import { createLogger } from '../utils/logger';
+import { createLogger } from '../utils/logger'
 import { TodoItem } from  '../models/TodoItem'
 
 const AWS = require('aws-sdk')
@@ -10,7 +10,7 @@ const logger = createLogger('dataLayer-todoAcess')
 
 export class TodosAccess {
   constructor(
-    private readonly docClient: DocumentClient = createDocumentClient(),
+    private readonly documentClient: DocumentClient = createDocumentClient(),
   ) {}
     
   async createTodo(item : TodoItem): Promise<TodoItem> {
@@ -20,8 +20,32 @@ export class TodosAccess {
     }
       
     logger.info('Uploading new item to database')
-    await this.docClient.put(params).promise()
+    await this.documentClient.put(params).promise()
     return item
+  }
+
+  async deleteTodo(todoId : string): Promise<any> {
+    // First find the createdAt field for the todo, since it is part of the composite key
+    const paramsGet = {
+      TableName: process.env.TODOS_TABLE,
+      KeyConditionExpression: 'todoId = :todoIddelete',
+      ExpressionAttributeValues: {
+        ':todoIddelete': todoId,
+      }
+    }
+    const todo = await this.documentClient.query(paramsGet).promise()
+    logger.info('get todo', todo)
+
+    const paramsDelete = {
+      TableName : TABLENAME,
+      Key: {
+        todoId: todoId,
+        createdAt: todo.Items[0].createdAt
+      }
+    };
+    
+    await this.documentClient.delete(paramsDelete).promise()
+    return todo
   }
 }
 

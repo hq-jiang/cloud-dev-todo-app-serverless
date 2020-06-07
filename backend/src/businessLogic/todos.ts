@@ -23,3 +23,9 @@ export async function createTodo(newTodo : CreateTodoRequest, userId : string) :
 
     return item
 }
+
+export async function deleteTodo(todoId : string) : Promise<any>{
+  
+  const todo = await todosAccess.deleteTodo(todoId)
+  return todo
+}
