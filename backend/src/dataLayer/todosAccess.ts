@@ -48,6 +48,20 @@ export class TodosAccess {
     logger.info('deleted todo', todo)
     return todo
   }
+
+  async getTodos(userId : string) : Promise<any>{
+    const params = {
+      TableName: process.env.TODOS_TABLE,
+      IndexName: process.env.INDEX_NAME,
+      KeyConditionExpression: 'userId = :loggedInUser',
+      ExpressionAttributeValues: {
+        ':loggedInUser': userId,
+      }
+    }
+    const todos = await this.documentClient.query(params).promise()
+    logger.info('Get all todos', todos)
+    return todos
+  }
 }
 
 function createDocumentClient() {

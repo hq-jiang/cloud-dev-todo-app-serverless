@@ -2,29 +2,12 @@ import 'source-map-support/register'
 
 import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
 import { getUserId } from '../../lambda/utils';
-import { createLogger } from '../../utils/logger'
-
-const AWS = require('aws-sdk')
-
-const AWSX = useAWSX()
-
-const logger = createLogger('Lambda-getTodos')
-const docClient = createDocumentClient()
-
+import { getTodos } from '../../businessLogic/todos'
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   // TODO: Get all TODO items for a current user
-  logger.info('Query db for todos')
-  const params = {
-    TableName: process.env.TODOS_TABLE,
-    IndexName: process.env.INDEX_NAME,
-    KeyConditionExpression: 'userId = :loggedInUser',
-    ExpressionAttributeValues: {
-      ':loggedInUser': getUserId(event),
-    }
-  }
-  const todos = await docClient.query(params).promise()
-  logger.info('Get all todos', todos)
+  const userId : string = getUserId(event)
+  const todos = await getTodos(userId)
   
   return {
     statusCode: 200,
@@ -35,28 +18,5 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     body: JSON.stringify({
       items: todos.Items
     })
-  }
-}
-
-function createDocumentClient() {
-  if (process.env.IS_OFFLINE) {
-    logger.info('Create a local DynamoDB instance')
-    return new AWS.DynamoDB.DocumentClient({
-      region: 'localhost',
-      endpoint: 'http://localhost:8000'
-    })
-  } else {
-    return new AWSX.DynamoDB.DocumentClient()
-  }
-}
-
-function useAWSX() {
-  // Disable AWS-XRAY in local mode to prevent runtime error
-  if (process.env.IS_OFFLINE) {
-    return undefined
-  } else {
-    const AWSXRay = require('aws-xray-sdk')
-    const AWSX = AWSXRay.captureAWS(AWS)
-    return AWSX
   }
 }

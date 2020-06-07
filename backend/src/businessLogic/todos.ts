@@ -29,3 +29,10 @@ export async function deleteTodo(todoId : string) : Promise<any>{
   const todo = await todosAccess.deleteTodo(todoId)
   return todo
 }
+
+export async function getTodos(userId : string) : Promise<any>{
+  logger.info('Query db for todos')
+
+  const todos = await todosAccess.getTodos(userId)
+  return todos
+}
