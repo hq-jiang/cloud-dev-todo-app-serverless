@@ -7,6 +7,7 @@ const AWS = require('aws-sdk')
 const AWSX = useAWSX()
 
 const TABLENAME : string = process.env.TODOS_TABLE;
+const s3BucketName = process.env.ATTACHMENT_S3_BUCKET
 const logger = createLogger('dataLayer-todoAccess')
 
 export class TodosAccess {
@@ -92,6 +93,36 @@ export class TodosAccess {
     await this.documentClient.update(params).promise();
     
     return updatedTodo
+  }
+
+  async updateAttachmentUrl(todoId: string) {
+    const paramsGet = {
+      TableName: process.env.TODOS_TABLE,
+      KeyConditionExpression: 'todoId = :toUpdate',
+      ExpressionAttributeValues: {
+        ':toUpdate': todoId,
+      }
+    }
+    const todo = await this.documentClient.query(paramsGet).promise()
+    logger.info('get todo', todo)
+
+    const url = `https://${s3BucketName}.s3.eu-central-1.amazonaws.com/${todoId}`
+  
+    var params = {
+      TableName: process.env.TODOS_TABLE,
+      Key: { 
+        todoId : todoId, 
+        createdAt: todo.Items[0].createdAt 
+      },
+      UpdateExpression: 'set #attachmentUrl = :updatedUrl',
+      ExpressionAttributeNames: {'#attachmentUrl' : 'attachmentUrl'},
+      ExpressionAttributeValues: {
+        ':updatedUrl' : url
+      }
+    }
+    await this.documentClient.update(params).promise();
+    
+    return url
   }
 }
 

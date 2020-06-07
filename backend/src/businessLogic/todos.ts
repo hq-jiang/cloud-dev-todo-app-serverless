@@ -43,3 +43,10 @@ export async function updateTodo(todoId: string, updatedTodo: UpdateTodoRequest)
   const updateditem = await todosAccess.updateTodo(todoId, updatedTodo)
   return updateditem
 }
+
+export async function updateAttachmentUrl(todoId: string): Promise<string> {
+  logger.info('update attachmentUrl')
+  const attachmentUrl = await todosAccess.updateAttachmentUrl(todoId)
+  logger.info('attachmentUrl', attachmentUrl)
+  return attachmentUrl
+}
