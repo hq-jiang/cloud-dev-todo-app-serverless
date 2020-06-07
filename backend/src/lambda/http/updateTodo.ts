@@ -8,8 +8,8 @@ import { createLogger } from '../../utils/logger'
 
 const AWS = require('aws-sdk')
 
-const AWSXRay = require('aws-xray-sdk')
-const AWSX = AWSXRay.captureAWS(AWS)
+
+const AWSX = useAWSX()
 
 const logger = createLogger('Lambda-updateTodos')
 
@@ -69,5 +69,16 @@ function createDocumentClient() {
     })
   } else {
     return new AWSX.DynamoDB.DocumentClient()
+  }
+}
+
+function useAWSX() {
+  // Disable AWS-XRAY in local mode to prevent runtime error
+  if (process.env.IS_OFFLINE) {
+    return undefined
+  } else {
+    const AWSXRay = require('aws-xray-sdk')
+    const AWSX = AWSXRay.captureAWS(AWS)
+    return AWSX
   }
 }
