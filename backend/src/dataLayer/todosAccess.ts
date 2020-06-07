@@ -7,7 +7,7 @@ const AWS = require('aws-sdk')
 const AWSX = useAWSX()
 
 const TABLENAME : string = process.env.TODOS_TABLE;
-const logger = createLogger('dataLayer-todoAcess')
+const logger = createLogger('dataLayer-todoAccess')
 
 export class TodosAccess {
   constructor(
