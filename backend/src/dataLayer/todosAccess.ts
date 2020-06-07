@@ -45,6 +45,7 @@ export class TodosAccess {
     };
     
     await this.documentClient.delete(paramsDelete).promise()
+    logger.info('deleted todo', todo)
     return todo
   }
 }

@@ -6,7 +6,7 @@ import { deleteTodo } from '../../businessLogic/todos'
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const todoId = event.pathParameters.todoId
 
-  const todo = deleteTodo(todoId)
+  const todo = await deleteTodo(todoId)
 
   return {
     statusCode: 200,
