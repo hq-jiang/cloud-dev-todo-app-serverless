@@ -1,6 +1,7 @@
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 import { createLogger } from '../utils/logger'
 import { TodoItem } from  '../models/TodoItem'
+import { TodoUpdate } from  '../models/TodoUpdate'
 
 const AWS = require('aws-sdk')
 const AWSX = useAWSX()
@@ -61,6 +62,36 @@ export class TodosAccess {
     const todos = await this.documentClient.query(params).promise()
     logger.info('Get all todos', todos)
     return todos
+  }
+
+  async updateTodo(todoId: string, updatedTodo: TodoUpdate): Promise<TodoUpdate>{
+    const paramsGet = {
+      TableName: process.env.TODOS_TABLE,
+      KeyConditionExpression: 'todoId = :todoIddelete',
+      ExpressionAttributeValues: {
+        ':todoIddelete': todoId,
+      }
+    }
+    const todo = await this.documentClient.query(paramsGet).promise()
+  
+    var params = {
+      TableName: process.env.TODOS_TABLE,
+      Key: { 
+        todoId : todoId, 
+        createdAt: todo.Items[0].createdAt 
+      },
+      UpdateExpression: 'set #name = :updatedName, #dueDate = :updatedDueDate, #done = :updatedDone',
+      ExpressionAttributeNames: {'#name' : 'name', '#dueDate': 'dueDate', '#done': 'done'},
+      ExpressionAttributeValues: {
+        ':updatedName' : updatedTodo.name,
+        ':updatedDueDate' : updatedTodo.dueDate,
+        ':updatedDone' : updatedTodo.done,
+      }
+    };
+  
+    await this.documentClient.update(params).promise();
+    
+    return updatedTodo
   }
 }
 
