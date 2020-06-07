@@ -23,23 +23,6 @@ provider:
     lambda: true
     apiGateway: true
 
-  # iamRoleStatements:
-  #   - Effect: Allow
-  #     Action:
-  #       - dynamodb:PutItem
-  #       - dynamodb:GetItem
-  #       - dynamodb:Query
-  #       - dynamodb:UpdateItem
-  #       - dynamodb:DeleteItem
-  #     Resource: 
-  #       - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
-  #       - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.INDEX_NAME}
-  #   - Effect: Allow
-  #     Action:
-  #       - s3:PutObject
-  #       - s3:GetObject
-  #     Resource: arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*
-
 custom:
   models:
     - name: CreateTodoRequest
@@ -118,7 +101,6 @@ functions:
       - Effect: Allow
         Action:
           - xray:PutTraceSegments
-          # - xray:PutTelemetryRecords
         Resource:
           - "*"
 
@@ -172,7 +154,7 @@ functions:
         Resource:
           - "*"
 
-  # # TODO: Configure this function
+  # TODO: Configure this function
   GenerateUploadUrl:
     handler: src/lambda/http/generateUploadUrl.handler
     events:
